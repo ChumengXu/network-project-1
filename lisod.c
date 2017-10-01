@@ -25,6 +25,43 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+typedef struct{
+    char Connection[];
+    char Date[];
+    char Server[];
+    int Content_Length;
+    char Content_Type[];
+    char Content_Encoding[];
+    char Last_Modified[];
+    char message_body[];
+} http_response;
+
+void request_handler(Request *request, http_response *response){
+    switch (rq->http_method){
+        case "GET": 
+            
+            break;
+        case "HEAD":
+            
+            break;
+        case "POST":
+            char datetime[];
+            time_t rawtime;
+            struct tm *info;
+            time( &rawtime );
+            info = localtime( &rawtime );
+            strftime(datetime,80,"%a, %d %b %Y %H:%M:%S %Z", info);         
+            response->Connection=request->headers["Connection"];
+            response->Date=datetime;
+            response->Server="Liso/1.0";
+            response->Content_Length=request->headers["Content-Length"];
+            response->Content_Type=request->headers["Content-Type"];
+            //response->Last_Modified=
+            break;
+
+    }
+}
+
 int main(void)
 {
     fd_set master;    // master file descriptor list
@@ -142,16 +179,11 @@ int main(void)
                         FD_CLR(i, &master); // remove from master set
                     } else {
                         // we got some data from a client
-                        for(j = 0; j <= fdmax; j++) {
-                            // send to everyone!
-                            if (FD_ISSET(j, &master)) {
-                                // except the listener and ourselves
-                                if (j != listener && j != i) {
-                                    if (send(j, buf, nbytes, 0) == -1) {
-                                        perror("send");
-                                    }
-                                }
-                            }
+                        http_response response;
+                        parse(buf,nbytes,i);
+                        request_handler(buf,response);
+                        if (send(i,response.nbytes,0) == -1){
+                            perror("send");
                         }
                     }
                 } // END handle data from client

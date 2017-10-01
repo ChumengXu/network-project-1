@@ -1,0 +1,9 @@
+POST /courses/cs6820/2016fa/ HTTP/1.1
+Host: www.cs.cornell.edu
+Connection: keep-alive
+Content-Type: multipart/form-data; boundary=---------------------------18736355632318
+Content-Length: 288
+Content-Disposition: form-data; name="upfile"; filename="test.txt"
+Content-Type: text/plain
+Content-Disposition: form-data; name="note"
+
