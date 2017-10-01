@@ -1,17 +1,4 @@
-/*
-** selectserver.c -- a cheezy multiperson chat server
-*/
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include "parser.h"
+#include "lisod.h"
 
 #define PORT "9999"   // port we're listening on
 
@@ -25,41 +12,35 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-typedef struct{
-    char Connection[];
-    char Date[];
-    char Server[];
-    int Content_Length;
-    char Content_Type[];
-    char Content_Encoding[];
-    char Last_Modified[];
-    char message_body[];
-} http_response;
 
-void request_handler(Request *request, http_response *response){
-    switch (rq->http_method){
-        case "GET": 
-            
-            
-            break;
-        case "HEAD":
-            
-            break;
-        case "POST":
-            char datetime[];
-            time_t rawtime;
-            struct tm *info;
-            time( &rawtime );
-            info = localtime( &rawtime );
-            strftime(datetime,80,"%a, %d %b %Y %H:%M:%S %Z", info);         
-            response->Connection=request->headers["Connection"];
-            response->Date=datetime;
-            response->Server="Liso/1.0";
-            response->Content_Length=request->headers["Content-Length"];
-            response->Content_Type=request->headers["Content-Type"];
-            //response->Last_Modified=
-            break;
+http_response* request_handler(Request *request){
+    http_response* response;
+    if(strcmp(request->http_method,"GET")){
 
+    }
+    if(strcmp(request->http_method,"HEAD")){
+        
+    }
+    if(strcmp(request->http_method,"POST")){
+        char datetime[80];
+        time_t rawtime;
+        struct tm *info;
+        time( &rawtime );
+        info = localtime( &rawtime );
+        strftime(datetime,80,"%a, %d %b %Y %H:%M:%S %Z", info);
+        for(int i=0;i<request->header_count;i++){
+            char hd_name[50];
+            strcpy(hd_name,request->headers[i].header_name);
+            if(strcmp(hd_name,"Connection"))
+                strcpy(response->Connection,request->headers[i].header_value);
+            else if(strcmp(hd_name,"Content-Length"))
+                response->Content_Length=request->headers[i].header_value;
+            else if(strcmp(hd_name,"Content-Type"))
+                strcpy(response->Content_Type,request->headers[i].header_value);
+        }         
+        strcpy(response->Date,datetime);
+        strcpy(response->Server,"Liso/1.0");
+        //response->Last_Modified=
     }
 }
 
@@ -80,7 +61,7 @@ int main(void)
     char remoteIP[INET6_ADDRSTRLEN];
 
     int yes=1;        // for setsockopt() SO_REUSEADDR, below
-    int i, j, rv;
+    int i, rv;
 
     struct addrinfo hints, *ai, *p;
 
@@ -180,10 +161,11 @@ int main(void)
                         FD_CLR(i, &master); // remove from master set
                     } else {
                         // we got some data from a client
-                        http_response response;
-                        parse(buf,nbytes,i);
-                        request_handler(buf,response);
-                        if (send(i,response.nbytes,0) == -1){
+                        http_response *response;
+                        Request *request;
+                        request=parse(buf,nbytes,i);
+                        response=request_handler(request);
+                        if (send(i,response,nbytes,0) == -1){
                             perror("send");
                         }
                     }

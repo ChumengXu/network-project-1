@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "lisod.h": "c",
+        "parse.h": "c"
+    }
+}
