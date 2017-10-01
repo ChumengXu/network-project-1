@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include "parser.h"
 
 #define PORT "9034"   // port we're listening on
 
